@@ -6,6 +6,7 @@
 #   //:protobuf_python
 #   //:well_known_types_py_pb2
 
+load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
 load("@rules_python//python:defs.bzl", "py_library")
 load("//:protobuf.bzl", "internal_py_proto_library")
@@ -76,6 +77,13 @@ def build_targets(name):
         copts = COPTS + [
             "-DPYTHON_PROTO2_CPP_IMPL_V2",
         ],
+        linkopts = selects.with_or({
+            (
+                "//python/dist:osx_x86_64",
+                "//python/dist:osx_aarch64",
+            ): ["-Wl,-undefined,dynamic_lookup"],
+            "//conditions:default": [],
+        }),
         linkshared = 1,
         linkstatic = 1,
         tags = [
@@ -109,6 +117,13 @@ def build_targets(name):
         ] + select({
             "//conditions:default": [],
             ":allow_oversize_protos": ["-DPROTOBUF_PYTHON_ALLOW_OVERSIZE_PROTOS=1"],
+        }),
+        linkopts = selects.with_or({
+            (
+                "//python/dist:osx_x86_64",
+                "//python/dist:osx_aarch64",
+            ): ["-Wl,-undefined,dynamic_lookup"],
+            "//conditions:default": [],
         }),
         includes = ["."],
         linkshared = 1,
