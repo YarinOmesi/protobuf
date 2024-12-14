@@ -1,0 +1,10 @@
+﻿syntax = "proto3";
+
+package Protos;
+
+option csharp_namespace = "Protos";
+
+message MyMessage {
+  repeated float repeated_floats = 1;
+  optional bytes floats_as_bytes = 2;
+}
