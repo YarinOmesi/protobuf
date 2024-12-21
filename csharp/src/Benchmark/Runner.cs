@@ -11,11 +11,16 @@ public class Runner
 {
     private float[] floats;
     private ReadOnlyMemory<byte> bytes;
+
     private byte[] _serialziedMyMessageBytes;
     private byte[] _serialziedMyMessageFloats;
+
+    private MyMessage _myMessageBytes;
+    private MyMessage _myMessageFloats;
+
     private MessageParser<MyMessage> _messageParser;
 
-    [Params(100, 1000, 10_000, 100_000)] public int Size;
+    [Params(10_000, 100_000)] public int Size;
 
 
     [GlobalSetup]
@@ -24,15 +29,17 @@ public class Runner
         floats = Enumerable.Range(0, Size).Select(i => (float) i).ToArray();
         bytes = MemoryMarshal.Cast<float, byte>(floats).ToArray();
 
-        MyMessage floatsM = new();
-        floatsM.RepeatedFloats.AddRange(floats);
+        // floats
+        _myMessageFloats = new MyMessage();
+        _myMessageFloats.RepeatedFloats.AddRange(floats);
+        _serialziedMyMessageFloats = _myMessageFloats.ToByteArray();
 
-        _serialziedMyMessageFloats = floatsM.ToByteArray();
 
-        MyMessage bytesM = new();
-        bytesM.FloatsAsBytes = ByteString.CopyFrom(bytes.Span);
+        // bytes
+        _myMessageBytes = new MyMessage();
+        _myMessageBytes.FloatsAsBytes = ByteString.CopyFrom(bytes.Span);
+        _serialziedMyMessageBytes = _myMessageBytes.ToByteArray();
 
-        _serialziedMyMessageBytes = bytesM.ToByteArray();
         _messageParser = MyMessage.Parser;
     }
 
@@ -46,5 +53,17 @@ public class Runner
     public MyMessage Parse_Bytes()
     {
         return _messageParser.ParseFrom(_serialziedMyMessageBytes);
+    }
+
+    [Benchmark]
+    public byte[] Write_RepeatedFloats()
+    {
+        return _myMessageFloats.ToByteArray();
+    }
+
+    [Benchmark]
+    public byte[] Write_Bytes()
+    {
+        return _myMessageBytes.ToByteArray();
     }
 }
